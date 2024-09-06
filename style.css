@@ -1,0 +1,15 @@
+body {
+    width: 400px;
+    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 15px;
+}
+
+#copy-cookie {
+    border-radius: 6px;
+    padding: 0 10px;
+    background-color: #fff;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+}
+
