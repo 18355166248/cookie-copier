@@ -12,11 +12,11 @@ document.querySelector("#copy-cookie").addEventListener("click", function () {
       allCookies.forEach((cookie) => {
         if (
           cookie.name !== "JSESSIONID" &&
-          cookie.name !== "_const_cas_ticket"
+          cookie.name !== "_const_cas_ticket" &&
+          cookie.name !== "CAS-TOKEN-BUSINESS"
         ) {
           return;
         }
-
         const newCookie = {
           name: cookie.name,
           path: cookie.path,
