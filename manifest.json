@@ -2,30 +2,29 @@
   "name": "Cookie Copier",
   "description": "将喜马测试环境中的Cookie复制至localhost中",
   "version": "0.1.1",
-  "permissions": [
-    "tabs",
-    "storage",
-    "cookies",
-    "webNavigation",
-    "*://*/*"
+  "permissions": ["tabs", "storage", "cookies", "webNavigation"],
+  "host_permissions": [
+    "*://*.test.ximalaya.com/*",
+    "*://*.ximaoa.com/*",
+    "*://*.ximalaya.com/*",
+    "*://localhost/*"
   ],
   "background": {
-    "scripts": [
-      "js/background.js"
-    ]
+    "service_worker": "js/background.js"
   },
-  "page_action": {
+  "action": {
     "default_icon": "images/icon.png",
-    "default_title": "Cookie复制工具"
+    "default_title": "Cookie复制工具",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": [
-        "*://*/*"
+        "*://*.test.ximalaya.com/*",
+        "*://*.ximaoa.com/*",
+        "*://*.ximalaya.com/*"
       ],
-      "js": [
-        "js/content_script.js"
-      ]
+      "js": ["js/content_script.js"]
     }
   ],
   "options_page": "options.html",

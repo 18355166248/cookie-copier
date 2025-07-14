@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Copier 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .cookie-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .cookie-item {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-left: 3px solid #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Cookie Copier 测试页面</h1>
+        <p>这个页面用于测试Cookie复制功能。请确保您已经安装了Cookie Copier扩展。</p>
+
+        <h2>当前页面的Cookies:</h2>
+        <div id="cookieList" class="cookie-list">
+            <p>正在加载cookies...</p>
+        </div>
+
+        <h2>测试操作:</h2>
+        <button onclick="setTestCookies()">设置测试Cookies</button>
+        <button onclick="clearTestCookies()">清除测试Cookies</button>
+        <button onclick="refreshCookieList()">刷新Cookie列表</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = '';
+            }, 3000);
+        }
+
+        function refreshCookieList() {
+            const cookieList = document.getElementById('cookieList');
+            cookieList.innerHTML = '<p>正在加载cookies...</p>';
+
+            // 获取当前页面的所有cookies
+            const cookies = document.cookie.split(';');
+            if (cookies.length === 0 || (cookies.length === 1 && cookies[0] === '')) {
+                cookieList.innerHTML = '<p>当前页面没有cookies</p>';
+                return;
+            }
+
+            let html = '';
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.trim().split('=');
+                html += `<div class="cookie-item"><strong>${name}</strong>: ${value}</div>`;
+            });
+            cookieList.innerHTML = html;
+        }
+
+        function setTestCookies() {
+            // 设置一些测试cookies
+            document.cookie = "JSESSIONID=test-session-123; path=/";
+            document.cookie = "_const_cas_ticket=test-ticket-456; path=/";
+            document.cookie = "CAS-TOKEN-BUSINESS=test-business-789; path=/";
+            document.cookie = "4&_token=test-token-abc; path=/";
+
+            showStatus('测试Cookies已设置');
+            refreshCookieList();
+        }
+
+        function clearTestCookies() {
+            // 清除测试cookies
+            document.cookie = "JSESSIONID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+            document.cookie = "_const_cas_ticket=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+            document.cookie = "CAS-TOKEN-BUSINESS=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+            document.cookie = "4&_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+
+            showStatus('测试Cookies已清除');
+            refreshCookieList();
+        }
+
+        // 页面加载时显示cookies
+        window.onload = function() {
+            refreshCookieList();
+        };
+    </script>
+</body>
+</html>
