@@ -8,7 +8,12 @@ chrome.action.onClicked.addListener(function (tab) {
 // 监听标签页更新事件
 chrome.tabs.onUpdated.addListener(function (id, info, tab) {
   // 只在特定域名下启用扩展
-  const allowedDomains = ["test.ximalaya.com", "ximaoa.com", "ximalaya.com"];
+  const allowedDomains = [
+    "test.ximalaya.com",
+    "ximaoa.com",
+    "ad-ab.ximaoa.com",
+    "ximalaya.com",
+  ];
 
   if (tab.url && allowedDomains.some((domain) => tab.url.includes(domain))) {
     chrome.action.enable(id);

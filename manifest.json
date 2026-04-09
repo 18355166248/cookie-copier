@@ -6,6 +6,7 @@
   "host_permissions": [
     "*://*.test.ximalaya.com/*",
     "*://*.ximaoa.com/*",
+    "*://ad-ab.ximaoa.com/*",
     "*://*.ximalaya.com/*",
     "*://localhost/*"
   ],

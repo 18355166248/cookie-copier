@@ -1,125 +1,104 @@
-const $hostInput = document.querySelector("#input");
-$hostInput.value = localStorage.localHost || "http://localhost:3000";
+const COOKIE_SOURCES = [
+  {
+    domain: "ops.test.ximalaya.com",
+    names: ["JSESSIONID", "_const_cas_ticket", "CAS-TOKEN-BUSINESS"],
+  },
+  {
+    domain: ".ximaoa.com",
+    names: ["JSESSIONID", "_const_cas_ticket"],
+  },
+  {
+    domain: "ad-ab.ximaoa.com",
+    names: ["JSESSIONID", "_const_cas_ticket"],
+  },
+  {
+    domain: ".ximalaya.com",
+    names: null, // 全量复制
+  },
+];
 
-document.querySelector("#copy-cookie").addEventListener("click", function () {
-  const localHost = $hostInput.value || "http://localhost:3000";
-
-  // 验证输入的URL格式
-  if (!localHost.startsWith("http://") && !localHost.startsWith("https://")) {
-    alert("请输入有效的URL地址，例如：http://localhost:3000");
-    return;
-  }
-
-  localStorage.localHost = localHost;
-
-  let successCount = 0;
-  let errorCount = 0;
-
-  // 复制 ops.test.ximalaya.com 的 cookies
-  chrome.cookies.getAll(
-    { domain: "ops.test.ximalaya.com" },
-    function (allCookies) {
+function getCookies(domain) {
+  return new Promise((resolve) => {
+    chrome.cookies.getAll({ domain }, (cookies) => {
       if (chrome.runtime.lastError) {
         console.error("获取cookies失败:", chrome.runtime.lastError);
-        errorCount++;
-        return;
+        resolve([]);
+      } else {
+        resolve(cookies);
       }
+    });
+  });
+}
 
-      allCookies.forEach((cookie) => {
-        if (
-          cookie.name !== "JSESSIONID" &&
-          cookie.name !== "_const_cas_ticket" &&
-          cookie.name !== "CAS-TOKEN-BUSINESS"
-        ) {
-          return;
-        }
-        const newCookie = {
+function setCookie(cookie) {
+  return new Promise((resolve) => {
+    chrome.cookies.set(cookie, (result) => resolve(!!result));
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const $input = document.querySelector("#input");
+  const $btn = document.querySelector("#copy-cookie");
+  const $status = document.querySelector("#status");
+
+  $input.value = localStorage.localHost || "http://localhost:3000";
+
+  $btn.addEventListener("click", async () => {
+    const localHost = $input.value.trim() || "http://localhost:3000";
+
+    if (!localHost.startsWith("http://") && !localHost.startsWith("https://")) {
+      showStatus("请输入有效的 URL，例如：http://localhost:3000", "error");
+      return;
+    }
+
+    localStorage.localHost = localHost;
+    $btn.disabled = true;
+    showStatus("复制中…", "loading");
+
+    let successCount = 0;
+    let errorCount = 0;
+    const targetDomain = new URL(localHost).hostname;
+    // 用 key 去重，避免多个 source 重复写同一个 cookie
+    const seen = new Set();
+
+    for (const source of COOKIE_SOURCES) {
+      const cookies = await getCookies(source.domain);
+      const filtered = source.names
+        ? cookies.filter((c) => source.names.includes(c.name))
+        : cookies;
+
+      for (const cookie of filtered) {
+        const key = cookie.name;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        const ok = await setCookie({
           name: cookie.name,
-          path: cookie.path,
           value: cookie.value,
+          path: "/",
           url: localHost,
-          domain: "localhost",
-        };
-        chrome.cookies.set(newCookie, function (err) {
-          if (err) {
-            console.log("设置cookie失败:", err);
-            errorCount++;
-          } else {
-            successCount++;
-          }
+          domain: targetDomain,
         });
-      });
-    }
-  );
-
-  // 复制 .ximaoa.com 的 cookies
-  chrome.cookies.getAll({ domain: ".ximaoa.com" }, function (allCookies) {
-    if (chrome.runtime.lastError) {
-      console.error("获取cookies失败:", chrome.runtime.lastError);
-      errorCount++;
-      return;
-    }
-
-    allCookies.forEach((cookie) => {
-      if (cookie.name !== "JSESSIONID" && cookie.name !== "_const_cas_ticket") {
-        return;
+        ok ? successCount++ : errorCount++;
       }
-
-      const newCookie = {
-        name: cookie.name,
-        path: cookie.path,
-        value: cookie.value,
-        url: localHost,
-        domain: "localhost",
-      };
-      chrome.cookies.set(newCookie, function (err) {
-        if (err) {
-          console.log("设置cookie失败:", err);
-          errorCount++;
-        } else {
-          successCount++;
-        }
-      });
-    });
-  });
-
-  // 复制 .ximalaya.com 的 cookies
-  chrome.cookies.getAll({ domain: ".ximalaya.com" }, function (allCookies) {
-    if (chrome.runtime.lastError) {
-      console.error("获取cookies失败:", chrome.runtime.lastError);
-      errorCount++;
-      return;
     }
 
-    allCookies.forEach((cookie) => {
-      if (cookie.name !== "4&_token") {
-        return;
-      }
-      const cookieValue = cookie.value;
-      const newCookie = {
-        name: "4&_token",
-        path: "/",
-        value: cookieValue,
-        url: localHost,
-        domain: "localhost",
-      };
-      chrome.cookies.set(newCookie, function (err) {
-        if (err) {
-          console.log("设置cookie失败:", err);
-          errorCount++;
-        } else {
-          successCount++;
-        }
-      });
-    });
-  });
+    $btn.disabled = false;
 
-  // 延迟显示结果，确保所有操作完成
-  setTimeout(() => {
-    if (errorCount > 0) {
-      alert(`复制完成！成功: ${successCount} 个，失败: ${errorCount} 个`);
+    if (successCount === 0 && errorCount === 0) {
+      showStatus("未找到可复制的 Cookie，请先登录对应环境", "warn");
+    } else if (errorCount > 0) {
+      showStatus(
+        `完成：成功 ${successCount} 个，失败 ${errorCount} 个`,
+        "error",
+      );
     } else {
-      alert("复制成功 o(￣▽￣)ｄ");
+      showStatus(`复制成功 ${successCount} 个 o(￣▽￣)ｄ`, "success");
     }
-  }, 1000);
+  });
+
+  function showStatus(msg, type) {
+    $status.textContent = msg;
+    $status.className = "status " + type;
+  }
 });
