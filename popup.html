@@ -34,7 +34,7 @@
         margin-bottom: 6px;
       }
 
-      input {
+      input[type="text"] {
         width: 100%;
         height: 34px;
         padding: 0 10px;
@@ -46,12 +46,192 @@
         transition: border-color 0.2s;
       }
 
-      input:focus {
+      input[type="text"]:focus {
         border-color: #4a90e2;
       }
 
-      button {
-        margin-top: 12px;
+      .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #aaa;
+        letter-spacing: 0.4px;
+        margin: 14px 0 7px;
+        text-transform: uppercase;
+      }
+
+      .source-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .source-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border: 1px solid #e8e8e8;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+        user-select: none;
+      }
+
+      .source-item:hover {
+        border-color: #c8d8f0;
+        background: #f8fbff;
+      }
+
+      .source-item.disabled {
+        opacity: 0.5;
+      }
+
+      .source-item input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        cursor: pointer;
+        accent-color: #4a90e2;
+      }
+
+      .source-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .source-domain {
+        font-size: 12px;
+        font-weight: 500;
+        color: #222;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .source-names {
+        font-size: 11px;
+        color: #aaa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1px;
+      }
+
+      .source-delete {
+        flex-shrink: 0;
+        padding: 2px 5px;
+        border: none;
+        background: none;
+        color: #ccc;
+        cursor: pointer;
+        font-size: 15px;
+        line-height: 1;
+        border-radius: 4px;
+        transition:
+          color 0.15s,
+          background 0.15s;
+        margin-top: 0;
+        width: auto;
+        height: auto;
+      }
+
+      .source-delete:hover {
+        color: #e74c3c;
+        background: #fff0f0;
+      }
+
+      .add-source-btn {
+        width: 100%;
+        height: 32px;
+        border: 1px dashed #ccc;
+        border-radius: 6px;
+        background: none;
+        color: #999;
+        font-size: 12px;
+        cursor: pointer;
+        margin-top: 6px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+
+      .add-source-btn:hover {
+        border-color: #4a90e2;
+        color: #4a90e2;
+        background: none;
+      }
+
+      .add-form {
+        display: none;
+        padding: 10px;
+        border: 1px solid #daeaff;
+        border-radius: 6px;
+        background: #f5f8ff;
+        margin-top: 6px;
+      }
+
+      .add-form.visible {
+        display: block;
+      }
+
+      .add-form label {
+        margin-top: 6px;
+        margin-bottom: 4px;
+      }
+
+      .add-form label:first-child {
+        margin-top: 0;
+      }
+
+      .add-form input[type="text"] {
+        height: 30px;
+        font-size: 12px;
+        margin-bottom: 0;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .form-actions button {
+        flex: 1;
+        height: 30px;
+        font-size: 12px;
+        margin-top: 0;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition:
+          background 0.15s,
+          opacity 0.15s;
+      }
+
+      .btn-cancel {
+        background: #ececec;
+        color: #666;
+      }
+
+      .btn-cancel:hover {
+        background: #ddd;
+      }
+
+      .btn-confirm {
+        background: #4a90e2;
+        color: #fff;
+      }
+
+      .btn-confirm:hover {
+        background: #357abd;
+      }
+
+      .copy-btn {
+        margin-top: 14px;
         width: 100%;
         height: 36px;
         background: #4a90e2;
@@ -66,11 +246,11 @@
           opacity 0.2s;
       }
 
-      button:hover {
+      .copy-btn:hover {
         background: #357abd;
       }
 
-      button:disabled {
+      .copy-btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
@@ -112,9 +292,26 @@
 
   <body>
     <h2>Cookie Copier</h2>
+
     <label for="input">本地访问地址</label>
     <input id="input" type="text" placeholder="http://localhost:3000" />
-    <button id="copy-cookie">一键复制 Cookie</button>
+
+    <div class="section-title">复制来源</div>
+    <div id="source-list" class="source-list"></div>
+    <button id="add-source-btn" class="add-source-btn">+ 添加域名</button>
+
+    <div id="add-form" class="add-form">
+      <label>域名（如 .example.com）</label>
+      <input id="form-domain" type="text" placeholder=".example.com" />
+      <label>Cookie 名称（逗号分隔，留空则全量复制）</label>
+      <input id="form-names" type="text" placeholder="JSESSIONID, token, ..." />
+      <div class="form-actions">
+        <button id="form-cancel" class="btn-cancel">取消</button>
+        <button id="form-confirm" class="btn-confirm">确认添加</button>
+      </div>
+    </div>
+
+    <button id="copy-cookie" class="copy-btn">一键复制 Cookie</button>
     <div id="status" class="status"></div>
 
     <script src="js/popup.js"></script>

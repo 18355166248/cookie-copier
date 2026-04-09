@@ -3,13 +3,7 @@
   "description": "将喜马测试环境中的Cookie复制至localhost中",
   "version": "0.1.1",
   "permissions": ["tabs", "storage", "cookies", "webNavigation"],
-  "host_permissions": [
-    "*://*.test.ximalaya.com/*",
-    "*://*.ximaoa.com/*",
-    "*://ad-ab.ximaoa.com/*",
-    "*://*.ximalaya.com/*",
-    "*://localhost/*"
-  ],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "js/background.js"
   },
